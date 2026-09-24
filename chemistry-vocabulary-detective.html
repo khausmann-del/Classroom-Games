@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chemistry Vocabulary Detective - 32 Rounds</title>
+<style>
+body{font-family:Arial,sans-serif;background:#f3f6f8;margin:0;padding:20px;color:#222}
+.container{max-width:800px;margin:auto;background:white;border-radius:20px;padding:28px;box-shadow:0 4px 16px #0001}
+h1{text-align:center;font-size:32px;margin-bottom:8px}
+.subtitle{text-align:center;font-size:18px;margin-bottom:24px}
+.top{display:flex;justify-content:space-between;font-weight:bold;font-size:18px}
+.bar{height:14px;background:#ddd;border-radius:10px;margin:10px 0 24px;overflow:hidden}
+.fill{height:100%;width:0;background:#4a90e2}
+.question{background:#f7f9fb;border-radius:15px;padding:24px;font-size:23px;line-height:1.45;margin-bottom:20px}
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+button{font-size:19px;padding:17px 10px;border-radius:12px;border:2px solid #aaa;background:white;cursor:pointer}
+button:hover:not(:disabled){background:#eef6ff}
+button:disabled{cursor:default}
+.feedback{margin-top:20px;min-height:100px;font-size:19px;line-height:1.45}
+.correct{background:#e8f5e9;padding:16px;border-radius:12px}
+.incorrect{background:#fff3e0;padding:16px;border-radius:12px}
+.next{margin-top:14px;background:#4a90e2;color:white;border:none}
+.final{text-align:center;padding:25px}
+.final h2{font-size:30px}
+.final .score{font-size:28px;font-weight:bold}
+@media(max-width:600px){.choices{grid-template-columns:1fr}.question{font-size:20px}h1{font-size:27px}}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>🧪 Chemistry Vocabulary Detective</h1>
+<div class="subtitle">32 rounds • 8 chemistry vocabulary words • Choose the best answer!</div>
+<div id="game"></div>
+</div>
+
+<script>
+const rounds = [
+["matter","A helium balloon contains helium gas. The gas has mass and takes up space. What term describes the helium?"],
+["physical change","An aluminum can is crushed into a smaller shape. It is still aluminum. What kind of change is this?"],
+["chemical change","A cake is baked in an oven. The ingredients change and new substances form. What kind of change is this?"],
+["conductor","Aluminum foil allows electric current to move through it. What property does aluminum have?"],
+["insulator","A foam cup helps keep a hot drink from transferring heat quickly to your hand. What is the cup acting as?"],
+["solubility","Powdered drink mix disappears when stirred into water. What property allows it to dissolve?"],
+["magnetism","A magnet pulls an iron nail toward it. What property causes this attraction?"],
+["density","A small metal bolt sinks in water because it has more mass packed into a small amount of space. What property is being described?"],
+["physical change","Ice melts and becomes liquid water. The substance is still water. What kind of change is this?"],
+["chemical change","An iron nail sits outside and develops rust. A new substance forms. What kind of change is this?"],
+["conductor","Copper wire is used to carry electricity through a circuit. What property does copper have?"],
+["insulator","The plastic covering around an electrical wire helps protect people from the electricity. What is plastic acting as?"],
+["solubility","Salt dissolves in water, but sand does not. What property are we comparing?"],
+["magnetism","A refrigerator magnet sticks to the metal refrigerator door. What property is responsible?"],
+["density","A piece of wood floats while a metal bolt sinks in water. Their densities are different. What property is being compared?"],
+["matter","A desk, pencil, and water bottle all have mass and take up space. What are they examples of?"],
+["matter","Water vapor from a hot shower may be hard to see, but it still has mass and takes up space. What is water vapor?"],
+["physical change","A piece of aluminum foil is folded into a different shape. It is still aluminum foil. What kind of change is this?"],
+["chemical change","Vinegar and baking soda are mixed and produce bubbles as new substances form. What kind of change is this?"],
+["conductor","A metal pan transfers heat from the stove to the food. What property helps the metal transfer heat?"],
+["insulator","A wooden or plastic handle on a cooking tool helps protect your hand from heat. What is the handle acting as?"],
+["solubility","Sugar can dissolve in water, while cooking oil does not dissolve in water. What property are we observing?"],
+["magnetism","A magnet can pull a paper clip toward it even when a sheet of paper is between them. What property is being shown?"],
+["density","Oil floats on top of water because oil is less dense than water. What property is being described?"],
+["matter","A basketball, the air inside it, and the water in a bottle all have mass and take up space. What are they?"],
+["physical change","A piece of paper is torn into several smaller pieces. It is still paper. What kind of change is this?"],
+["chemical change","A piece of wood burns and becomes ash and gases. New substances form. What kind of change is this?"],
+["conductor","A metal spoon becomes warm when it sits in hot soup because heat moves through the metal. What property does the metal have?"],
+["insulator","A rubber glove helps protect a person from electrical current. What property does rubber have?"],
+["solubility","A sports drink powder mixes into water and forms a solution. What property allows the powder to dissolve?"],
+["magnetism","A magnet attracts a steel paper clip but does not attract a plastic spoon. What property explains this?"],
+["density","Two blocks are the same size, but one is much heavier because more matter is packed into the same space. What property is different?"]
+];
+
+const defs = {
+"matter":"Matter has mass and takes up space.",
+"physical change":"A physical change changes the size, shape, or state, but does not make a new substance.",
+"chemical change":"A chemical change makes one or more new substances.",
+"conductor":"A conductor allows heat or electricity to move through it easily.",
+"insulator":"An insulator slows or blocks the movement of heat or electricity.",
+"solubility":"Solubility is how well a substance can dissolve in another substance.",
+"magnetism":"Magnetism is a force that allows certain materials to be attracted to a magnet.",
+"density":"Density describes how much matter is packed into a certain amount of space."
+};
+
+const choices=Object.keys(defs);
+let round=0,score=0;
+
+function shuffle(array){
+ let a=[...array];
+ for(let i=a.length-1;i>0;i--){
+   let j=Math.floor(Math.random()*(i+1));
+   [a[i],a[j]]=[a[j],a[i]];
+ }
+ return a;
+}
+
+function showRound(){
+ if(round>=rounds.length){showFinal();return;}
+ const [answer,question]=rounds[round];
+ const game=document.getElementById("game");
+ game.innerHTML=`
+ <div class="top"><span>Round ${round+1} of ${rounds.length}</span><span>Score: ${score}</span></div>
+ <div class="bar"><div class="fill" style="width:${(round/rounds.length)*100}%"></div></div>
+ <div class="question">${question}</div>
+ <div class="choices" id="choices"></div>
+ <div class="feedback" id="feedback"></div>`;
+
+ const box=document.getElementById("choices");
+ shuffle(choices).forEach(choice=>{
+   const b=document.createElement("button");
+   b.textContent=choice;
+   b.onclick=()=>checkAnswer(choice,answer);
+   box.appendChild(b);
+ });
+}
+
+function checkAnswer(choice,answer){
+ const feedback=document.getElementById("feedback");
+ document.querySelectorAll("#choices button").forEach(b=>b.disabled=true);
+ if(choice===answer){
+   score++;
+   feedback.innerHTML=`<div class="correct"><b>✅ Correct!</b><br>${defs[answer]}</div>`;
+ }else{
+   feedback.innerHTML=`<div class="incorrect"><b>Almost!</b><br>The correct answer is <b>${answer}</b>.<br>${defs[answer]}</div>`;
+ }
+ const next=document.createElement("button");
+ next.className="next";
+ next.textContent=round===rounds.length-1?"See Final Score":"Next Round →";
+ next.onclick=()=>{round++;showRound();};
+ feedback.appendChild(next);
+}
+
+function showFinal(){
+ const percent=Math.round((score/rounds.length)*100);
+ document.getElementById("game").innerHTML=`
+ <div class="final">
+ <h2>🎉 Great Work!</h2>
+ <p class="score">Your Score: ${score} / ${rounds.length}</p>
+ <p style="font-size:21px">You completed all 32 chemistry vocabulary rounds!</p>
+ <p style="font-size:18px">You practiced matter, physical change, chemical change, conductor, insulator, solubility, magnetism, and density.</p>
+ <button class="next" onclick="location.reload()">🔄 Play Again</button>
+ </div>`;
+}
+showRound();
+</script>
+</body>
+</html>
