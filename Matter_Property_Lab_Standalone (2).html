@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Matter Property Lab</title>
+  <style>
+    :root{--navy:#17365d;--blue:#2878bd;--sky:#eaf6ff;--ink:#142033;--green:#1f7a46;--greenbg:#e7f7ed;--orange:#b44d00;--orangebg:#fff1df;--line:#b8d2e6}
+    *{box-sizing:border-box}body{margin:0;background:linear-gradient(135deg,#e8f7ff,#f8fbff 50%,#e9f8ef);font-family:Arial,Helvetica,sans-serif;color:var(--ink);min-height:100vh}
+    button{font:inherit}.screen{min-height:100vh;display:grid;place-items:center;padding:24px}.card{width:min(940px,100%);background:#fff;border:3px solid var(--navy);border-radius:28px;box-shadow:0 16px 40px #17365d26;padding:clamp(24px,5vw,48px)}
+    .title{text-align:center;font-size:clamp(36px,6vw,64px);margin:0;color:var(--navy)}.subtitle{text-align:center;font-size:clamp(20px,3vw,30px);line-height:1.35;margin:12px auto 28px;max-width:760px}
+    .beakers{text-align:center;font-size:clamp(58px,9vw,92px);letter-spacing:8px}.start{display:block;margin:24px auto 0;padding:20px 44px;border:0;border-radius:18px;background:var(--blue);color:#fff;font-weight:700;font-size:clamp(24px,4vw,36px);cursor:pointer;box-shadow:0 7px 0 #15578d}.start:active{transform:translateY(4px);box-shadow:0 3px 0 #15578d}
+    #game{display:none}.top{display:flex;gap:18px;align-items:center;justify-content:space-between;flex-wrap:wrap}.badge{background:var(--navy);color:#fff;border-radius:99px;padding:10px 18px;font-size:20px;font-weight:700}.bar{height:17px;background:#dce9f2;border-radius:20px;overflow:hidden;margin:20px 0}.fill{height:100%;width:0;background:linear-gradient(90deg,#31a66a,#2b87cc);transition:width .35s}
+    .object{text-align:center;font-size:74px;margin:2px}.prompt{text-align:center;font-size:clamp(24px,4vw,36px);line-height:1.35;min-height:120px}.hintrow{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin:20px 0}.hint{border:2px solid var(--line);background:var(--sky);border-radius:16px;padding:15px;text-align:center;font-size:19px;line-height:1.4}.answers{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}.answer{padding:18px;border:3px solid var(--blue);border-radius:16px;background:#fff;color:var(--navy);font-size:clamp(20px,3vw,28px);font-weight:700;cursor:pointer}.answer:hover,.answer:focus{background:#e5f4ff;outline:4px solid #ffd45c}.answer:disabled{cursor:default;opacity:.72}
+    #feedback{min-height:112px;margin-top:20px}.feedback{border-radius:16px;padding:17px;font-size:23px;line-height:1.35}.good{background:var(--greenbg);border:3px solid var(--green);color:#145333}.try{background:var(--orangebg);border:3px solid var(--orange);color:#733100}.next{display:block;margin:15px auto 0;padding:14px 28px;border:0;border-radius:14px;background:var(--navy);color:#fff;font-size:22px;font-weight:700;cursor:pointer}
+    .finish{text-align:center}.score{font-size:clamp(48px,8vw,82px);font-weight:800;color:var(--green);margin:8px}.small{font-size:20px;color:#42536a}.footer{text-align:center;margin-top:18px;font-size:16px;color:#536579}
+    @media(max-width:650px){.answers,.hintrow{grid-template-columns:1fr}.card{padding:22px}.prompt{min-height:0}.answer{padding:14px}}
+  </style>
+</head>
+<body>
+  <main class="screen">
+    <section class="card" id="launch">
+      <div class="beakers">🧪 🔍 📏</div>
+      <h1 class="title">Matter Property Lab</h1>
+      <p class="subtitle">Look at each clue. Choose the property of matter being described.</p>
+      <button class="start" id="startButton">▶ Start the Lab</button>
+      <p class="footer">12 rounds • immediate feedback • score at the end</p>
+    </section>
+
+    <section class="card" id="game" aria-live="polite">
+      <div class="top"><span class="badge" id="roundBadge">Round 1 of 12</span><span class="badge" id="scoreBadge">Score: 0</span></div>
+      <div class="bar" aria-label="Game progress"><div class="fill" id="fill"></div></div>
+      <div class="object" id="object">🧊</div>
+      <div class="prompt" id="prompt"></div>
+      <div class="hintrow">
+        <div class="hint"><b>👀 Observe</b><br>Color • Size • Shape • Texture</div>
+        <div class="hint"><b>📏 Measure or Test</b><br>Weight • Temperature • Hardness</div>
+      </div>
+      <div class="answers" id="answers"></div>
+      <div id="feedback"></div>
+    </section>
+  </main>
+  <script>
+    (() => {
+      const rounds = [
+        {emoji:'🧊',name:'Ice cube',clue:'It is clear and colorless.',answer:'Color'},
+        {emoji:'🧸',name:'Soft toy',clue:'It feels soft when you touch it.',answer:'Texture'},
+        {emoji:'📦',name:'Box',clue:'It is 20 centimeters tall.',answer:'Size'},
+        {emoji:'🍎',name:'Apple',clue:'It has a round shape.',answer:'Shape'},
+        {emoji:'🥤',name:'Drink',clue:'A thermometer says it is 10°C.',answer:'Temperature'},
+        {emoji:'🪨',name:'Rock',clue:'A scale says it weighs 500 grams.',answer:'Weight'},
+        {emoji:'🧱',name:'Brick',clue:'It is hard to scratch.',answer:'Hardness'},
+        {emoji:'🟡',name:'Yellow ball',clue:'You can see that it is yellow.',answer:'Color'},
+        {emoji:'📏',name:'Ruler',clue:'It is longer than the pencil beside it.',answer:'Size'},
+        {emoji:'🧴',name:'Bottle',clue:'A scale shows how heavy it is.',answer:'Weight'},
+        {emoji:'🥄',name:'Spoon',clue:'It feels smooth when you touch it.',answer:'Texture'},
+        {emoji:'🔺',name:'Triangle',clue:'It has three sides and three corners.',answer:'Shape'}
+      ];
+      const choices = ['Color','Size','Shape','Texture','Weight','Temperature','Hardness'];
+      const $ = id => document.getElementById(id);
+      let index = 0, score = 0;
+      function shuffled(items){return [...items].sort(() => Math.random() - .5)}
+      function start(){index=0;score=0;$('launch').style.display='none';$('game').style.display='block';showRound()}
+      function showRound(){
+        const r=rounds[index];
+        $('roundBadge').textContent=`Round ${index+1} of ${rounds.length}`;
+        $('scoreBadge').textContent=`Score: ${score}`;
+        $('fill').style.width=`${index/rounds.length*100}%`;
+        $('object').textContent=r.emoji;
+        $('prompt').innerHTML=`<b>${r.name}</b><br>${r.clue}<br><span class="small">Which property is described?</span>`;
+        $('feedback').innerHTML='';$('answers').innerHTML='';
+        shuffled(choices).forEach(choice=>{const b=document.createElement('button');b.className='answer';b.textContent=choice;b.onclick=()=>check(choice,r.answer);$('answers').appendChild(b)});
+      }
+      function check(choice,answer){
+        document.querySelectorAll('.answer').forEach(b=>b.disabled=true);
+        const correct=choice===answer;if(correct)score++;
+        $('scoreBadge').textContent=`Score: ${score}`;
+        $('feedback').innerHTML=`<div class="feedback ${correct?'good':'try'}"><b>${correct?'✅ Correct!':'🔎 Let’s look again.'}</b><br>${correct?`${answer} is the property described.`:`The best answer is <b>${answer}</b>.`}</div><button class="next" id="nextButton">${index===rounds.length-1?'See My Score':'Next Object →'}</button>`;
+        $('nextButton').focus();$('nextButton').onclick=next;
+      }
+      function next(){index++;if(index<rounds.length){showRound();return}finish()}
+      function finish(){
+        $('fill').style.width='100%';
+        $('game').innerHTML=`<div class="finish"><div class="beakers">🎉 🧪 🎉</div><h1 class="title">Lab Complete!</h1><div class="score">${score} / ${rounds.length}</div><p class="subtitle">You practiced identifying properties of matter.</p><button class="start" id="playAgain">↻ Play Again</button></div>`;
+        $('playAgain').onclick=()=>location.reload();
+      }
+      $('startButton').onclick=start;
+    })();
+  </script>
+</body>
+</html>
